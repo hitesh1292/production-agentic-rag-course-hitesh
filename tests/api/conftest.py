@@ -23,6 +23,8 @@ async def client():
         patch("src.services.arxiv.factory.make_arxiv_client") as mock_arxiv,
         patch("src.services.pdf_parser.factory.make_pdf_parser_service") as mock_pdf,
         patch("src.services.ollama.client.OllamaClient") as mock_ollama,
+        patch("src.main.make_telegram_service", return_value=None),
+        patch("src.main.make_cache_client", return_value=None),
         patch("src.repositories.paper.PaperRepository.get_by_arxiv_id") as mock_get_by_id,
     ):
         # Mock startup to do nothing

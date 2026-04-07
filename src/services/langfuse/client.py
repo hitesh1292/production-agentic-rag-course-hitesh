@@ -79,6 +79,49 @@ class LangfuseTracer:
             return None
 
     @contextmanager
+    def trace_rag_request(
+        self,
+        query: str,
+        user_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ):
+        """Context manager to create a top-level trace for a RAG request."""
+        if not self.client:
+            yield None
+            return
+        try:
+            trace = self.client.trace(
+                name="rag_request",
+                user_id=user_id,
+                session_id=session_id,
+                input={"query": query},
+                metadata=metadata or {},
+            )
+            yield trace
+        except Exception as e:
+            logger.error(f"Error creating RAG trace: {e}")
+            yield None
+
+    def create_span(
+        self,
+        trace: Any,
+        name: str,
+        input_data: Optional[Any] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ):
+        """Create a span on an existing trace (or top-level if trace is None)."""
+        if not self.client:
+            return None
+        try:
+            if trace:
+                return trace.span(name=name, input=input_data, metadata=metadata or {})
+            return self.client.span(name=name, input=input_data, metadata=metadata or {})
+        except Exception as e:
+            logger.error(f"Error creating span: {e}")
+            return None
+
+    @contextmanager
     def trace_langgraph_agent(
         self,
         name: str,

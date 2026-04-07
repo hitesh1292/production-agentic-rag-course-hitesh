@@ -69,7 +69,11 @@ async def lifespan(app: FastAPI):
     app.state.embeddings_service = make_embeddings_service()
     app.state.ollama_client = make_ollama_client()
     app.state.langfuse_tracer = make_langfuse_tracer()
-    app.state.cache_client = make_cache_client(settings)
+    try:
+        app.state.cache_client = make_cache_client(settings)
+    except Exception:
+        logger.warning("Cache unavailable - running without Redis cache")
+        app.state.cache_client = None
     logger.info("Services initialized: arXiv API client, PDF parser, OpenSearch, Embeddings, Ollama, Langfuse, Cache")
 
     # Initialize Telegram bot (Week 7)
