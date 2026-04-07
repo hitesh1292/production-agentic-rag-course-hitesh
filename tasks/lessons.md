@@ -29,3 +29,13 @@ Updated after every correction. Read at the start of each session.
 **Fix:** Move all heavy `src.services.*` imports inside the function bodies (`get_cached_services()`, `index_papers_hybrid()`, `verify_hybrid_index()`). Python's import system caches modules after the first load, so the cost is paid only once at actual task execution time — not at DAG parse time.
 
 **Rule:** In any Airflow DAG task module, `from src.services.*` imports must live inside functions, never at module level. Add a comment at the top of the file as a guard: `# Heavy imports are deferred inside functions — do NOT move to module level.`
+
+---
+
+## L004 — Patch at the import site, not the definition site
+
+**Pattern:** `conftest.py` had `patch("src.services.telegram.factory.make_telegram_service")` and `patch("src.services.cache.factory.make_cache_client")` — but `main.py` imports these via `from src.services.telegram.factory import make_telegram_service`. The patch had no effect and the real function ran, causing test hangs.
+
+**Rule:** Always patch where the name is *used*, not where it is *defined*. If `main.py` has `from src.services.X.factory import make_X`, the patch target is `src.main.make_X`, not `src.services.X.factory.make_X`.
+
+**Why:** Python's `unittest.mock.patch` replaces the name in the specified module's namespace. After the `from ... import` statement runs, `main.make_X` and `src.services.X.factory.make_X` are two separate references to the same object. Patching the definition site doesn't affect the already-bound reference in `main`.

@@ -20,8 +20,8 @@ File-by-file analysis from the initial codebase read.
 
 ## Makefile
 **What it does:** Provides shorthand `make` targets wrapping `docker compose` and `uv` commands for common dev tasks (start, stop, health, test, lint, format, clean).
-**Assumes:** `docker`, `docker compose`, `uv`, `jq`, and `curl` are installed and on `$PATH`.
-**Breaks if wrong:** Make targets silently run wrong commands; health checks check the wrong port (currently checks `/health` but API exposes `/api/v1/health`).
+**Assumes:** `docker`, `docker compose`, `uv`, and `curl` are installed and on `$PATH`. JSON formatting uses `python3 -m json.tool` (not `jq` — jq is not available in the Make shell environment).
+**Breaks if wrong:** Make targets silently run wrong commands. (Health check URLs were fixed: API is `/api/v1/health`, Airflow is `/health`.)
 
 ---
 
@@ -184,8 +184,8 @@ File-by-file analysis from the initial codebase read.
 
 ## src/main.py
 **What it does:** The FastAPI app entry point — defines the `lifespan` context manager that initialises all 9 services into `app.state` in dependency order, registers 5 routers, and starts/stops the Telegram bot; then creates the `FastAPI` app with this lifespan.
-**Assumes:** All factory functions succeed (databases, OpenSearch, etc. are reachable); `.env` is loaded.
-**Breaks if wrong:** Any factory failure aborts startup entirely; the order of `app.state` assignments matters — Telegram init uses `opensearch_client`, `embeddings_service`, `ollama_client`, `cache_client`, and `langfuse_tracer` which must be set before the Telegram factory is called; if `agentic_ask.router` is included without its prefix, it doesn't get `/api/v1` — confirmed: it sets its own `prefix="/api/v1"` in the router definition.
+**Assumes:** Core factory functions succeed (databases, OpenSearch, etc. are reachable); `.env` is loaded. Redis cache is optional — failure is caught and `app.state.cache_client` is set to `None` (graceful degradation).
+**Breaks if wrong:** Any non-optional factory failure aborts startup entirely; the order of `app.state` assignments matters — Telegram init uses `opensearch_client`, `embeddings_service`, `ollama_client`, `cache_client`, and `langfuse_tracer` which must be set before the Telegram factory is called; if `agentic_ask.router` is included without its prefix, it doesn't get `/api/v1` — confirmed: it sets its own `prefix="/api/v1"` in the router definition.
 
 ---
 

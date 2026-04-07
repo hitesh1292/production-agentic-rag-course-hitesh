@@ -92,6 +92,8 @@ models/         — ORM table definitions
 - In production, a Redis outage shouldn't take down the search API.
 - The dependency return types reflect this: `CacheDep = Annotated[CacheClient | None, ...]` and `TelegramDep = Annotated[Optional[TelegramBot], ...]`.
 
+**Implementation note:** `make_cache_client()` in `main.py` is wrapped in `try/except` so a Redis `ConnectionError` at startup sets `app.state.cache_client = None` rather than aborting. Telegram is handled the same way — if `make_telegram_service()` returns `None` (missing token), startup continues. Any service stored as `None` in `app.state` must be null-checked at usage points.
+
 ---
 
 ## 7. Multi-Stage Docker Build
@@ -173,3 +175,13 @@ models/         — ORM table definitions
 **Decision:** BM25 keyword search is built in Week 3 before vector search in Week 4. The hybrid search system treats BM25 as the foundation, with vectors as enhancement.
 
 **Why (from README):** "Unlike tutorials that jump straight to vector search, we follow the professional path: master keyword search foundations first, then enhance with vectors." BM25 is deterministic, interpretable, and requires no API keys. Many production failures come from over-relying on semantic similarity for queries that are better served by exact keyword matching.
+
+---
+
+## 16. Langfuse v3 SDK Migration (Partially Complete)
+
+**Decision:** `src/services/langfuse/client.py` was refactored from Langfuse v2 to v3 API. The v3 client uses `CallbackHandler` for LangChain/LangGraph auto-tracing and `get_current_trace_id()` for trace ID retrieval.
+
+**Why:** Langfuse v3 changed the recommended integration pattern: instead of manually creating traces and spans, the `CallbackHandler` passed to LangGraph automatically creates the full trace tree. v2's `trace_rag_request()` / `create_span()` are still present in `client.py` for legacy callers (`routers/ask.py`, `services/langfuse/tracer.py`) that haven't been migrated yet.
+
+**Current state:** `trace_langgraph_agent()`, `start_generation()`, `start_span()`, and the `CallbackHandler` approach are v3. `trace_rag_request()` and `create_span()` are v2-style methods retained for backward compatibility. Full v3 migration of the `/ask` and `/stream` endpoints is deferred to Week 6 (observability week).
