@@ -5,12 +5,6 @@ from typing import Any, Tuple
 
 sys.path.insert(0, "/opt/airflow")
 
-from src.db.factory import make_database
-from src.services.arxiv.factory import make_arxiv_client
-from src.services.metadata_fetcher import make_metadata_fetcher
-from src.services.opensearch.factory import make_opensearch_client
-from src.services.pdf_parser.factory import make_pdf_parser_service
-
 logger = logging.getLogger(__name__)
 
 
@@ -18,8 +12,18 @@ logger = logging.getLogger(__name__)
 def get_cached_services() -> Tuple[Any, Any, Any, Any, Any]:
     """Get cached service instances using lru_cache for automatic memoization.
 
+    Heavy imports are deferred to inside this function so that Airflow's DAG
+    parser does not trigger torch/docling loading on every heartbeat.
+
     :returns: Tuple of (arxiv_client, pdf_parser, database, metadata_fetcher, opensearch_client)
     """
+    # Deferred imports — only loaded when a task actually runs, not at DAG parse time
+    from src.db.factory import make_database
+    from src.services.arxiv.factory import make_arxiv_client
+    from src.services.metadata_fetcher import make_metadata_fetcher
+    from src.services.opensearch.factory import make_opensearch_client
+    from src.services.pdf_parser.factory import make_pdf_parser_service
+
     logger.info("Initializing services (cached with lru_cache)")
 
     # Initialize core services
