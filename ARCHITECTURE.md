@@ -160,9 +160,9 @@ src/
 
 ```mermaid
 flowchart LR
-    Lifespan["main.py lifespan<br/>(startup)"] -->|make_*()| State["app.state<br/>(service singletons)"]
-    State --> Deps["dependencies.py<br/>(typed Annotated aliases)"]
-    Deps -->|FastAPI Depends()| Router["Router function<br/>signature"]
+    Lifespan["main.py lifespan\nstartup"] -->|"make_xyz factory"| State["app.state\nservice singletons"]
+    State --> Deps["dependencies.py\ntyped Annotated aliases"]
+    Deps -->|"FastAPI Depends"| Router["Router function\nsignature"]
 ```
 
 Services created once in lifespan, stored in `app.state`, injected via typed aliases (`OpenSearchDep`, `OllamaDep`, `CacheDep`, etc.). `AgenticRAGService` is the exception — constructed per-request from already-injected singletons.
