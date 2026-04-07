@@ -24,10 +24,10 @@ logs: ## Show service logs
 # Health checks
 health: ## Check all services health
 	@echo "Checking service health..."
-	@curl -s http://localhost:8000/health | jq . || echo "API not responding"
-	@curl -s http://localhost:9200/_cluster/health | jq . || echo "OpenSearch not responding"
-	@curl -s http://localhost:8080/api/v2/monitor/health || echo "Airflow not responding"
-	@curl -s http://localhost:11434/api/version | jq . || echo "Ollama not responding"
+	@curl -s http://localhost:8000/api/v1/health | python3 -m json.tool || echo "API not responding"
+	@curl -s http://localhost:9200/_cluster/health | python3 -m json.tool || echo "OpenSearch not responding"
+	@curl -s http://localhost:8080/health | python3 -m json.tool || echo "Airflow not responding"
+	@curl -s http://localhost:11434/api/version | python3 -m json.tool || echo "Ollama not responding"
 
 # Development
 setup: ## Install Python dependencies

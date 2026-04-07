@@ -29,11 +29,3 @@ Updated after every correction. Read at the start of each session.
 **Fix:** Move all heavy `src.services.*` imports inside the function bodies (`get_cached_services()`, `index_papers_hybrid()`, `verify_hybrid_index()`). Python's import system caches modules after the first load, so the cost is paid only once at actual task execution time — not at DAG parse time.
 
 **Rule:** In any Airflow DAG task module, `from src.services.*` imports must live inside functions, never at module level. Add a comment at the top of the file as a guard: `# Heavy imports are deferred inside functions — do NOT move to module level.`
-
----
-
-## L002 — The health endpoint is /api/v1/health, not /health
-
-**Pattern:** Written `/health` in verify.md and CLAUDE.md commands — the actual FastAPI route registered in `main.py` and `ping.py` is `/api/v1/health`.
-
-**Rule:** Always use `curl localhost:8000/api/v1/health`. The bare `/health` path does not exist and returns 404. Double-check router prefixes in `main.py` before writing any URL in docs or scripts.
