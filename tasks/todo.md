@@ -12,7 +12,7 @@ File-by-file analysis from the initial codebase read.
 ---
 
 ## compose.yml
-**What it does:** Defines and wires together 15 Docker containers (api, postgres, opensearch, opensearch-dashboards, airflow, ollama, redis, clickhouse, langfuse-web, langfuse-worker, langfuse-postgres, langfuse-redis, langfuse-minio) on a shared `rag-network` bridge.
+**What it does:** Defines and wires together 13 Docker containers (api, postgres, opensearch, opensearch-dashboards, airflow, ollama, redis, clickhouse, langfuse-web, langfuse-worker, langfuse-postgres, langfuse-redis, langfuse-minio) on a shared `rag-network` bridge.
 **Assumes:** `.env` file exists with `LANGFUSE_SALT`, `LANGFUSE_ENCRYPTION_KEY`, `LANGFUSE_NEXTAUTH_SECRET`, `LANGFUSE_MINIO_ACCESS_KEY/SECRET_KEY`, `LANGFUSE_REDIS_PASSWORD`; Docker daemon is running; ports 8000, 5432, 9200, 5601, 8080, 11434, 6379, 3001, 3030, 5433, 6380, 9090, 8123 are free.
 **Breaks if wrong:** Services fail to start (missing env vars), fail to talk to each other (wrong hostnames — note container-internal URLs like `http://opensearch:9200` differ from localhost URLs), or data is lost on restart (missing volume definitions).
 
